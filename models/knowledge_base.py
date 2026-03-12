@@ -1,11 +1,11 @@
 """
 knowledge_base.py
 =================
-Simulated knowledge base that stores (subject, relation, object) facts
-with confidence scores and supports structured claim verification.
+Hybrid knowledge base: local fact store + live Wikidata API fallback.
 
-In a production system this would be replaced by a real KB such as
-Wikidata, a vector database, or a retrieval-augmented store.
+Verification order:
+  1. Local KB (fast, curated, offline)
+  2. Wikidata SPARQL API (100M+ facts, free, no key)
 """
 
 from typing import Dict, List, Optional, Tuple
@@ -46,10 +46,20 @@ class KnowledgeBase:
     def __init__(
         self,
         extra_facts: Optional[Dict[Tuple[str, str, str], float]] = None,
+        use_api: bool = True,
     ):
         self.facts: Dict[Tuple[str, str, str], float] = dict(self.DEFAULT_FACTS)
+        self.use_api = use_api
+        self._api_available = True  # set to False after first network failure
         if extra_facts:
             self.facts.update(extra_facts)
+
+    # ── Normalisation helper ─────────────────────────────────────────────
+
+    @staticmethod
+    def _norm(text: str) -> str:
+        """Normalise text for case-insensitive lookup."""
+        return text.strip().title()
 
     # ── Core verification ──────────────────────────────────────────────
 
@@ -64,16 +74,49 @@ class KnowledgeBase:
         key = (claim.subject, claim.relation, claim.object)
         if key in self.facts:
             return True, self.facts[key]
+        # Try case-insensitive
+        norm_key = (self._norm(claim.subject), claim.relation, self._norm(claim.object))
+        if norm_key in self.facts:
+            return True, self.facts[norm_key]
         return False, 0.0
 
     def verify_triple(
         self, subject: str, relation: str, obj: str
-    ) -> Tuple[bool, float]:
-        """Convenience wrapper that accepts raw strings."""
+    ) -> Tuple[bool, float, str]:
+        """
+        Hybrid verification: local KB first, then Wikidata API.
+
+        Returns (verified, confidence, source) where source is
+        'local', 'wikidata', or ''.
+        """
+        # ── 1. Local KB ──────────────────────────────────────────────
+        # Exact match
         key = (subject, relation, obj)
         if key in self.facts:
-            return True, self.facts[key]
-        return False, 0.0
+            return True, self.facts[key], "local"
+        # Normalised match
+        norm_key = (self._norm(subject), relation, self._norm(obj))
+        if norm_key in self.facts:
+            return True, self.facts[norm_key], "local"
+        # Relation-agnostic match
+        ns, no = self._norm(subject), self._norm(obj)
+        for (s, r, o), conf in self.facts.items():
+            if self._norm(s) == ns and self._norm(o) == no:
+                return True, conf, "local"
+
+        # ── 2. Wikidata API (if enabled) ─────────────────────────────
+        if self.use_api and self._api_available:
+            try:
+                from utils.wikidata_api import verify_claim_wikidata
+                verified, conf, desc = verify_claim_wikidata(subject, relation, obj)
+                if verified:
+                    # Cache into local KB for fast re-queries
+                    self.facts[(subject, relation, obj)] = conf
+                    return True, conf, "wikidata"
+            except Exception:
+                self._api_available = False
+
+        return False, 0.0, ""
 
     # ── Management ────────────────────────────────────────────────────
 
@@ -96,11 +139,25 @@ class KnowledgeBase:
         return False
 
     def search_subject(self, subject: str) -> List[Tuple[str, str, float]]:
-        """Return all (relation, object, confidence) entries for *subject*."""
+        """
+        Return all (relation, object, confidence) entries for *subject*.
+        Uses case-insensitive + substring matching so multi-word inputs work.
+        """
+        ns = self._norm(subject)
+        results = []
+        for (s, r, o), conf in self.facts.items():
+            s_norm = self._norm(s)
+            if s_norm == ns or ns in s_norm or s_norm in ns:
+                results.append((r, o, conf))
+        return results
+
+    def search_by_object(self, obj: str) -> List[Tuple[str, str, float]]:
+        """Return all (subject, relation, confidence) entries for *obj*."""
+        no = self._norm(obj)
         return [
-            (r, o, conf)
+            (s, r, conf)
             for (s, r, o), conf in self.facts.items()
-            if s == subject
+            if self._norm(o) == no
         ]
 
     def summary(self) -> str:
