@@ -78,6 +78,11 @@ Where:
 * **Truth Penalty:** Computes `max(0, 1.0 - average_claim_confidence)`, penalizing the model for generating unverified or low-confidence assertions.
 * **Conflict Penalty:** Proportional to the number of suppressed conflicting claims in a batch, forcing the model to learn self-consistency.
 
+### 3.6 Interactive Verification and Active Correction
+To demonstrate the efficacy of the verification pipeline in a user-facing scenario, VALKYRIE includes a real-time Interactive Mode. This interface acts as a smart fact-checking tutor by overlaying two critical UX features on top of the neural pipeline:
+* **Active Fact Correction:** When the network extracts a known Subject and Relation but detects an incorrect Object (e.g., extracting `Apple --[founded_by]--> Mark Zuckerberg`), the system does not passively flag the hallucination. It actively queries the latent memory to present the true fact (`Steve Jobs`).
+* **Smart Typo Detection:** When strict deterministic parsing fails due to spelling anomalies (e.g., `Effiel Tower`), the system filters out structural stop-words and provides fuzzy-matched entity suggestions, maintaining robust interaction.
+
 ---
 
 ## 4. Experiments and Simulation Results
