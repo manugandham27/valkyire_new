@@ -123,6 +123,14 @@ python main.py --test            # quick sanity check
 
 ---
 
+## Interactive Mode Features
+
+The interactive prompt (`python main.py --interactive`) includes smart UX features to act as a real-time fact-checking tutor:
+* **Active Fact Correction:** If you input a fact with a known Subject and Relation but an incorrect Object (e.g., *"Apple was founded by Mark Zuckerberg"*), the system doesn't just flag it. It actively queries the Knowledge Base and corrects you: `💡 CORRECTION: Apple --[founded_by]--> Steve Jobs (not 'Mark Zuckerberg')`.
+* **Smart Typo Detection:** If a subject is misspelled (e.g., *"Effiel Tower"*), the system detects the anomaly, explicitly warns about a potential spelling mistake, and filters out common stop-words to offer highly relevant fuzzy-matched "Did you mean...?" suggestions.
+
+---
+
 ## VS Code — Run Configs (F5)
 
 | Profile | Description |

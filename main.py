@@ -227,7 +227,7 @@ def interactive_mode(model: ValkyrieDecoder) -> None:
     print("\n" + "═" * W)
     print("  INTERACTIVE MODE  — VALKYRIE-Decoder v2")
     print("  Type any sentence and press Enter to verify it.")
-    print("  Sources: LOCAL KB (873+ curated facts) + WIKIDATA API (100M+ facts)")
+    print(f"  Sources: LOCAL KB ({len(model.knowledge_base.facts)} curated facts) + WIKIDATA API (100M+ facts)")
     print("  Commands:")
     print("    kb       → show all facts in knowledge base")
     print("    stats    → show KB statistics by domain")
@@ -300,15 +300,34 @@ def interactive_mode(model: ValkyrieDecoder) -> None:
                         for rel, obj, conf in related[:3]:
                             print(f"               → [{rel}] → {obj}  (conf={conf:.2f})")
                 else:
-                    print(f"             ⚠  '{c['subject']}' not found in knowledge base")
-                    # Suggest similar subjects
-                    words = prompt.title().split()
-                    for w in words:
-                        facts = model.knowledge_base.search_subject(w)
-                        if facts:
-                            print(f"             💡 Did you mean '{w}'? Known facts:")
-                            for rel, obj, conf in facts[:2]:
-                                print(f"               → [{rel}] → {obj}  (conf={conf:.2f})")
+                    # Check if the model knows the TRUE object for this subject and relation
+                    subject_facts = model.knowledge_base.search_subject(c["subject"])
+                    correction_found = False
+                    
+                    for rel, obj, conf in subject_facts:
+                        if rel == c["relation"]:
+                            if not correction_found:
+                                print(f"             💡 CORRECTION: {c['subject']} --[{rel}]--> {obj} (not '{c['object']}')")
+                            correction_found = True
+                    
+                    # If we couldn't find a direct correction, fallback to typo suggestions
+                    if not correction_found:
+                        print(f"             ⚠  Could not verify '{c['subject']}' --[{c['relation']}]-->.")
+                        words = prompt.title().split()
+                        suggestions_printed = 0
+                        spelling_mistake_notified = False
+                        
+                        for w in words:
+                            if len(w) <= 3: continue  # Skip small words like "Is", "The", "In"
+                            facts = model.knowledge_base.search_subject(w)
+                            if facts and suggestions_printed < 2:
+                                if not spelling_mistake_notified:
+                                    print(f"             📝 It looks like there might be a spelling mistake in your subject!")
+                                    spelling_mistake_notified = True
+                                print(f"             💡 Did you mean '{w}'? Known facts:")
+                                for rel, obj, conf in facts[:2]:
+                                    print(f"               → [{rel}] → {obj}  (conf={conf:.2f})")
+                                suggestions_printed += 1
         else:
             print(f"\n  ⚠  Could not parse a claim from this input.")
             print(f"     Try: 'Paris is the capital of France'")
