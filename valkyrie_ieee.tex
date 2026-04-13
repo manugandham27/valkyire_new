@@ -347,16 +347,41 @@ Weighted Avg & -- & 98.7\% & 96.4\% & 97.5\% \\
 \end{adjustbox}
 \end{table}
 
-\subsection{Formal Proof: IGCD First-Order Logic Constraint Enforcement}
-We provide a formal proof that the IGCD correctly enforces first-order logic consistency for functional relations under the closed-world assumption.
+\subsection{Algorithmic Implementation: IGCD Constraint Enforcement}
+We provide the algorithmic implementation detailing how the IGCD dynamically enforces first-order logic consistency for functional relations directly within the aggressive generation loop. Rather than relying on post-hoc validation loops, this step intercepts token logits prior to sequence sampling.
 
-\textbf{Definition 1 (Functional Relation).} A relation R is functional iff for all entities a, b, c: R(a,b) AND R(a,c) implies b=c.
+\vspace{2mm}
+\noindent\textbf{Algorithm 1: Intra-Generation Conflict Suppression}
 
-\textbf{Theorem 1.} For any set of generated claims S = $\{c_1, \dots, c_n\}$ where each $c_i = (s_i, r_i, o_i)$ and $r_i$ is a functional relation, the IGCD suppression mechanism guarantees that no two claims $c_i, c_j$ in the output satisfy $s_i = s_j$ AND $r_i = r_j$ AND $o_i \neq o_j$.
+\begin{itemize}
 
-\textbf{Proof.} The IGCD constructs a DAG $G = (V, E)$ where $V = S$ and directed edges encode relational dependencies. For each pair $(c_i, c_j)$ where $i \neq j$, the conflict predicate evaluates: $Conflict(c_i, c_j) = (s_i = s_j) \land (r_i = r_j) \land (o_i \neq o_j)$. If $Conflict(c_i, c_j) = TRUE$, then $P_{logit}(c_i) := -\infty$ and $P_{logit}(c_j) := -\infty$. After softmax normalisation, $P(c_i) = \exp(-\infty) / Z = 0$ and $P(c_j) = 0$. Therefore neither $c_i$ nor $c_j$ can appear in the sampled output. Since the check is exhaustive over all $\mathcal{O}(n^2)$ pairs per generation step, no conflicting pair survives. QED.
+\item \textbf{Input:} Current active claim $c_t$, prior generated claims $S$, logit vector $P_{logit}$.
 
-\textbf{Scope Limitation:} Theorem 1 holds only for (i) functional relations under the closed-world assumption, (ii) explicit first-order predicate logic conflicts. The IGCD does not detect: implicit contradictions requiring multi-step inference, higher-order logic violations, pragmatic inconsistencies, or temporal contradictions not encoded as explicit relation triples. The 5.1\% miss rate in Table 9 reflects these scope boundary cases.
+\item \textbf{Output:} Modified probability distribution $P_{filtered}$.
+
+\item \textbf{Step 1: Entity Parsing} -- Extract subject ($s_t$), relation ($r_t$), and object ($o_t$) tracking tokens from $c_t$ using the dual-stream representational mappings.
+
+\item \textbf{Step 2: State Traversal} -- Traverse DAG $G = (V, E)$ containing prior verified semantic claims $S$.
+
+\item \textbf{Step 3: Verification Check} -- For each prior claim $c_i \in S$:
+
+\begin{itemize}
+
+\item Evaluate $Conflict(c_t, c_i) = (s_t = s_i) \land (r_t = r_i) \land (o_t \neq o_i)$
+
+\item If $Conflict == TRUE$:
+
+\begin{itemize}\item Apply mathematical suppression: $P_{logit}(c_t) := -\infty$\item \textbf{break}\end{itemize}
+
+\end{itemize}
+
+\item \textbf{Step 4: Vector Normalization} -- Apply softmax normalization: $P_{filtered} = \exp(P_{logit}) / Z$
+
+\item \textbf{Step 5: Dynamic Sampling} -- Sample next entity token securely from $P_{filtered}$ and add to DAG $G$.
+
+\end{itemize}
+
+\textbf{Scope Limitation:} This real-time algorithm explicitly targets functional relations under a formal closed-world assumption targeting first-order predicate logic conflicts. The algorithm fundamentally does not intercept implicit temporal contradictions requiring deep multi-step logical inference arrays beyond the single-hop span, inherently contributing to the 5.1\% miss rate observed in Table 9.
 
 \subsection{IGCD Conflict Detection Performance}
 Table 9 details IGCD detection across four conflict categories. Object and symmetric conflicts (covered by Theorem 1) show 2.3\% miss rate from entity resolution ambiguity. Temporal inconsistency (9.0\%) and cross-sentence drift (15.1\%) fall outside the formal guarantee boundary, producing higher miss rates.
