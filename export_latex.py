@@ -2,8 +2,6 @@ import sys
 import os
 import re
 
-# Simple Python token replacement based precisely on what exists inside generate_ieee_paper.py and generate_springer_paper.py
-
 def clean_html(text):
     text = str(text)
     text = text.replace("<b>", "\\textbf{")
@@ -31,7 +29,6 @@ def clean_html(text):
     math_vars.sort(key=len, reverse=True)
     for v in math_vars:
         pattern = re.compile(re.escape(v))
-        # Fixed backslash escape replacement issue using lambda
         text = re.sub(f'(?<!\\$){pattern.pattern}(?!\\$)', lambda m, val=v: f'${val}$', text)
         
     text = text.replace("alpha =", "$\\alpha =$")
@@ -55,7 +52,6 @@ def parse_and_convert(source_file, out_file, is_ieee):
     with open(source_file, 'r') as f:
         content = f.read()
 
-    # Reconstruct it perfectly
     latex = []
     if is_ieee:
         latex.append("\\documentclass[10pt,journal,compsoc]{IEEEtran}")
@@ -67,6 +63,7 @@ def parse_and_convert(source_file, out_file, is_ieee):
     latex.append("\\usepackage{graphicx}")
     latex.append("\\usepackage{booktabs}")
     latex.append("\\usepackage{cite}")
+    latex.append("\\usepackage{adjustbox}")
     
     if not is_ieee:
         latex.append("\\usepackage[font=small,labelfont=bf]{caption}")
@@ -97,10 +94,14 @@ def parse_and_convert(source_file, out_file, is_ieee):
         latex.append("\\textbf{Abstract.} " + clean_html(C.ABSTRACT.replace("<b>", "").replace("</b>", "")) + "\n")
         latex.append("\\textbf{Keywords: } Semantic Drift · Large Language Models · Hallucination Mitigation · Dual-Stream Transformer · Neuro-Symbolic Gating · Epistemic Calibration · First-Order Logic\n")
 
-    # Rather than risky regex, build manually using section numbers matching exactly.
     def add_table(data, caption):
         latex.append("\\begin{table}[htbp]")
         latex.append("\\centering")
+        if is_ieee:
+            latex.append("\\caption{" + caption + "}")
+        
+        # Maxwidth bounding perfectly controls stretching
+        latex.append("\\begin{adjustbox}{max width=\\columnwidth}")
         cols = "l" * len(data[0])
         latex.append(f"\\begin{{tabular}}{{{cols}}}")
         latex.append("\\toprule")
@@ -113,10 +114,10 @@ def parse_and_convert(source_file, out_file, is_ieee):
                 latex.append(" & ".join(clean_row) + " \\\\")
         latex.append("\\bottomrule")
         latex.append("\\end{tabular}")
-        if is_ieee:
-            latex.append(f"\\caption{{{caption}}}")
-        else:
-            latex.append(f"\\caption{{{caption}}}")
+        latex.append("\\end{adjustbox}")
+        
+        if not is_ieee:
+            latex.append("\\caption{" + caption + "}")
         latex.append("\\end{table}\n")
 
     def add_fig(filename, caption, is_ieee):
@@ -146,10 +147,10 @@ def parse_and_convert(source_file, out_file, is_ieee):
     add_fig("fig0_architecture.png", "VALKYRIE-Decoder architecture: dual-stream decoder with BCSA, Dynamic Veracity Gate, and Intra-Generation Conflict Detector.", is_ieee)
 
     latex.append("\\subsection{Latent Space Initialization}\n" + clean_html(C.S3_LATENT))
-    latex.append("\\begin{equation}\n H_{gen}(0) = Embed(X) + PosEnc(X) \\quad ; \\quad H_{know}(0) = GraphEmbed(X)\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} & H_{gen}(0) = Embed(X) + PosEnc(X) \\\\ & H_{know}(0) = GraphEmbed(X) \\end{aligned} \n\\end{equation}\n")
 
     latex.append("\\subsection{Bidirectional Cross-Stream Attention (BCSA)}\n" + clean_html(C.S3_BCSA))
-    latex.append("\\begin{equation}\n Q_A = H_A(l) W_Q^A , \\quad K_A = H_A(l) W_K^A , \\quad V_A = H_A(l) W_V^A\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} & Q_A = H_A(l) W_Q^A , \\quad K_A = H_A(l) W_K^A , \\\\ & V_A = H_A(l) W_V^A \\end{aligned} \n\\end{equation}\n")
     latex.append("\\begin{equation}\n CrossAttn_A = Softmax\\left(\\frac{Q_A \\cdot K_B^T}{\\sqrt{d_k}}\\right) \\cdot V_B\n\\end{equation}\n")
     latex.append("\\begin{equation}\n CrossAttn_B = Softmax\\left(\\frac{Q_B \\cdot K_A^T}{\\sqrt{d_k}}\\right) \\cdot V_A\n\\end{equation}\n")
     latex.append("\\begin{equation}\n H_A(l+1) = LayerNorm( H_A(l) + \\alpha \\cdot CrossAttn_A )\n\\end{equation}\n")
@@ -157,9 +158,9 @@ def parse_and_convert(source_file, out_file, is_ieee):
     add_fig("fig6_gate_scalars.png", "Learned BCSA gate scalars across 8 decoder layers. Both converge from 0.10 to stable equilibrium (0.15-0.20).", is_ieee)
 
     latex.append("\\subsection{Dynamic Veracity Threshold Engine (DVTE)}\n" + clean_html(C.S3_DVTE))
-    latex.append("\\begin{equation}\n T_{dyn}(Q_{type}, l) = \\sigma( \\beta_{base}(Q_{type}) + \\lambda*(l/L_{max}) + \\epsilon_{MC} )\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} T_{dyn}(Q_{type}, l) =&~ \\sigma( \\beta_{base}(Q_{type}) \\\\ & + \\lambda*(l/L_{max}) + \\epsilon_{MC} ) \\end{aligned} \n\\end{equation}\n")
     latex.append("\\begin{equation}\n \\epsilon_{MC} = (1/T) * \\sum_{t=1..T} || h_t - h_{mean} ||^2 , \\quad T = 50\n\\end{equation}\n")
-    latex.append("\\begin{equation}\n Gate: OPEN \\text{ if } C \\ge T_{dyn} \\quad | \\quad CLOSED \\rightarrow H_B \\rightarrow 0 \\text{ if } C < T_{dyn}\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} & Gate: OPEN \\text{ if } C \\ge T_{dyn} \\\\ & | \\quad CLOSED \\rightarrow H_B \\rightarrow 0 \\text{ if } C < T_{dyn} \\end{aligned}\n\\end{equation}\n")
     latex.append("Table 1 shows base threshold bias per query category:\n")
     
     t1 = [["Query Type","$\\beta_{base}$","Depth $\\lambda$","Strictness","Coverage"],
@@ -171,13 +172,13 @@ def parse_and_convert(source_file, out_file, is_ieee):
     add_fig("fig3_threshold_analysis.png", "DVTE threshold adaptation across query types and decoder depth.", is_ieee)
 
     latex.append("\\subsection{Intra-Generation Conflict Detector (IGCD)}\n" + clean_html(C.S3_IGCD))
-    latex.append("\\begin{equation}\n Conflict(c_i,c_j): TRUE \\text{ iff } subj(c_i)=subj(c_j) \\text{ AND } rel(c_i)=rel(c_j) \\text{ AND } obj(c_i)\\neq obj(c_j)\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} & Conflict(c_i,c_j): TRUE \\text{ iff } \\\\ & subj(c_i)=subj(c_j) \\text{ AND } rel(c_i)=rel(c_j) \\\\ & \\text{AND } obj(c_i)\\neq obj(c_j) \\end{aligned}\n\\end{equation}\n")
     latex.append("\\begin{equation}\n P_{logit}(c_i) = -\\infty \\text{ for all } c_i \\in ConflictPair\n\\end{equation}\n")
 
     latex.append("\\subsection{Multi-Term Training Objective}\n" + clean_html(C.S3_LOSS))
-    latex.append("\\begin{equation}\n L_{Total} = L_{CE}(y, \\hat{y}) + \\lambda_1 * \\max(0, 1 - C_{mean}) + \\lambda_2 * \\sum(conflict\\_pairs)\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} L_{Total} =&~ L_{CE}(y, \\hat{y}) + \\lambda_1 * \\max(0, 1 - C_{mean}) \\\\ & + \\lambda_2 * \\sum(conflict\\_pairs) \\end{aligned} \n\\end{equation}\n")
     latex.append("\\begin{equation}\n L_{CE} = -\\sum_t  \\log P(x_t | x_1,...,x_{t-1})\n\\end{equation}\n")
-    latex.append("\\begin{equation}\n L_{truth} = \\max(0, 1 - C_{mean}) \\text{ where } C_{mean} = \\text{mean verified confidence}\n\\end{equation}\n")
+    latex.append("\\begin{equation}\n \\begin{aligned} & L_{truth} = \\max(0, 1 - C_{mean}) \\\\ & \\text{where } C_{mean} = \\text{mean verified confidence} \\end{aligned} \n\\end{equation}\n")
     latex.append("\\begin{equation}\n L_{conflict} = \\sum_{i \\ne j}  \\mathbb{1}[Conflict(c_i, c_j)] * penalty\\_weight\n\\end{equation}\n")
 
     latex.append("\\subsection{Implementation Details}\n" + clean_html(C.S3_IMPL))
@@ -256,7 +257,6 @@ def parse_and_convert(source_file, out_file, is_ieee):
     latex.append("\\textbf{Theorem 1.} For any set of generated claims S = $\\{c_1, \\dots, c_n\\}$ where each $c_i = (s_i, r_i, o_i)$ and $r_i$ is a functional relation, the IGCD suppression mechanism guarantees that no two claims $c_i, c_j$ in the output satisfy $s_i = s_j$ AND $r_i = r_j$ AND $o_i \\neq o_j$.\n")
     latex.append("\\textbf{Proof.} The IGCD constructs a DAG $G = (V, E)$ where $V = S$ and directed edges encode relational dependencies. For each pair $(c_i, c_j)$ where $i \\neq j$, the conflict predicate evaluates: $Conflict(c_i, c_j) = (s_i = s_j) \\land (r_i = r_j) \\land (o_i \\neq o_j)$. If $Conflict(c_i, c_j) = TRUE$, then $P_{logit}(c_i) := -\\infty$ and $P_{logit}(c_j) := -\\infty$. After softmax normalisation, $P(c_i) = \\exp(-\\infty) / Z = 0$ and $P(c_j) = 0$. Therefore neither $c_i$ nor $c_j$ can appear in the sampled output. Since the check is exhaustive over all $\\mathcal{O}(n^2)$ pairs per generation step, no conflicting pair survives. QED.\n")
     latex.append("\\textbf{Scope Limitation:} Theorem 1 holds only for (i) functional relations under the closed-world assumption, (ii) explicit first-order predicate logic conflicts. The IGCD does not detect: implicit contradictions requiring multi-step inference, higher-order logic violations, pragmatic inconsistencies, or temporal contradictions not encoded as explicit relation triples. The 5.1\\% miss rate in Table 9 reflects these scope boundary cases.\n")
-
 
     latex.append("\\subsection{IGCD Conflict Detection Performance}")
     latex.append("Table 9 details IGCD detection across four conflict categories. Object and symmetric conflicts (covered by Theorem 1) show 2.3\\% miss rate from entity resolution ambiguity. Temporal inconsistency (9.0\\%) and cross-sentence drift (15.1\\%) fall outside the formal guarantee boundary, producing higher miss rates.\n")
@@ -359,4 +359,4 @@ def parse_and_convert(source_file, out_file, is_ieee):
 if __name__ == "__main__":
     parse_and_convert('generate_ieee_paper.py', 'valkyrie_ieee.tex', True)
     parse_and_convert('generate_springer_paper.py', 'valkyrie_springer.tex', False)
-    print("LaTeX explicitly forced to mirror generation scripts structure.")
+    print("LaTeX successfully formatted with aligned math and maxwidth tables.")

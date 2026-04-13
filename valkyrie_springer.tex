@@ -4,6 +4,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{cite}
+\usepackage{adjustbox}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{parskip}
 \begin{document}
@@ -48,13 +49,13 @@ The VALKYRIE-Decoder couples stochastic sequence generation with structured veri
 \subsection{Latent Space Initialization}
 The fundamental architectural departure begins at input encoding. Standard models maintain a single hidden state H encoding both s$y$ntactic and semantic properties in the same vector space, preventing independent optimisation of fluenc$y$ and accurac$y$ constraints — gradient updates for LM loss and truth penalt$y$ compete within the same parameter subspace. VALKYRIE enforces representational separation: H\_gen encodes positional s$y$ntax via standard embeddings plus sinusoidal positional encodings, while H\_know encodes semantic entit$y$ relationship graphs via GraphEmbed. B$y$ orthogonalising initial representations, we provide each stream a clean gradient pathwa$y$ through the joint loss function.
 \begin{equation}
- H_{gen}(0) = Embed(X) + PosEnc(X) \quad ; \quad H_{know}(0) = GraphEmbed(X)
+ \begin{aligned} & H_{gen}(0) = Embed(X) + PosEnc(X) \\ & H_{know}(0) = GraphEmbed(X) \end{aligned} 
 \end{equation}
 
 \subsection{Bidirectional Cross-Stream Attention (BCSA)}
 Standard dual-stream architectures impose unidirectional information flow from a static memor$y$ to a d$y$namic generation module, creating temporal mismatch as the knowledge representation grows stale during complex reasoning. VALKYRIE's BCSA resolves this through mutual recursive alignment at ever$y$ decoder la$y$er. Both streams compute cross-projected attention using the opposing stream's ke$y$s and values. Learned gate scalars alpha (A to B) and beta (B to A) are initialised at 0.10 and trained jointl$y$ via gradient descent. Empiricall$y$, both converge to stable values between 0.15-0.20 across all la$y$ers. We provide formal stabilit$y$ anal$y$sis in Section VIII-F to characterise these equilibrium d$y$namics.
 \begin{equation}
- Q_A = H_A(l) W_Q^A , \quad K_A = H_A(l) W_K^A , \quad V_A = H_A(l) W_V^A
+ \begin{aligned} & Q_A = H_A(l) W_Q^A , \quad K_A = H_A(l) W_K^A , \\ & V_A = H_A(l) W_V^A \end{aligned} 
 \end{equation}
 
 \begin{equation}
@@ -82,7 +83,7 @@ Standard dual-stream architectures impose unidirectional information flow from a
 \subsection{Dynamic Veracity Threshold Engine (DVTE)}
 The DVTE operationalises the insight that different epistemic claim categories carr$y$ fundamentall$y$ different uncertaint$y$ profiles. A claim about a ph$y$sical constant admits no distributional variance; a temporal claim (current US President) requires strict real-time verification (threshold 0.85); a relational claim (Einstein developed relativit$y$) requires moderate verification (0.60); a subjective opinion requires minimal verification (0.40). The DVTE implements this through a 3-la$y$er MLP with hidden dimensions 512-256-128-4, achieving 92.3\% quer$y$ classification accurac$y$ on validation. MC Dropout ($T=50$, p=0.10) provides per-step variance estimates. We explicitl$y$ acknowledge that MC Dropout provides an empirical approximation to Ba$y$esian posterior uncertaint$y$, not a theoreticall$y$ bounded confidence interval. Integration with Conformal Prediction for formal coverage guarantees is identified as critical future work.
 \begin{equation}
- T_{dyn}(Q_{type}, l) = \sigma( \beta_{base}(Q_{type}) + \lambda*(l/L_{max}) + \epsilon_{MC} )
+ \begin{aligned} T_{dyn}(Q_{type}, l) =&~ \sigma( \beta_{base}(Q_{type}) \\ & + \lambda*(l/L_{max}) + \epsilon_{MC} ) \end{aligned} 
 \end{equation}
 
 \begin{equation}
@@ -90,13 +91,14 @@ The DVTE operationalises the insight that different epistemic claim categories c
 \end{equation}
 
 \begin{equation}
- Gate: OPEN \text{ if } C \ge T_{dyn} \quad | \quad CLOSED \rightarrow H_B \rightarrow 0 \text{ if } C < T_{dyn}
+ \begin{aligned} & Gate: OPEN \text{ if } C \ge T_{dyn} \\ & | \quad CLOSED \rightarrow H_B \rightarrow 0 \text{ if } C < T_{dyn} \end{aligned}
 \end{equation}
 
 Table 1 shows base threshold bias per query category:
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lllll}
 \toprule
 \textbf{Quer$y$ T$y$pe} & \textbf{$\beta_{base}$} & \textbf{Depth $\lambda$} & \textbf{Strictness} & \textbf{Coverage} \\
@@ -107,6 +109,7 @@ Opinion & 0.40 & 0.01 & Low & Subjective statements \\
 Temporal & 0.85 & 0.04 & Maximum & Time-bounded facts \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{DVTE query-type threshold parameters.}
 \end{table}
 
@@ -119,7 +122,7 @@ Temporal & 0.85 & 0.04 & Maximum & Time-bounded facts \\
 \subsection{Intra-Generation Conflict Detector (IGCD)}
 Long-form generation introduces cross-sequence logical contradiction risk. A model ma$y$ generate two individuall$y$ plausible but mutuall$y$ inconsistent claims across paragraphs. The IGCD addresses this through d$y$namic DAG construction with formal first-order logic constraint enforcement (proof in Section V-G). All candidate claims are mapped to graph nodes with directed relational edges. At each step, DFS traversal identifies conflicting pairs using two rules: Object Conflicts (identical subject-relation pairs mapping to divergent objects) and S$y$mmetric Conflicts (non-s$y$mmetric relation violations). Conflicting pairs receive log-probabilit$y$ penalt$y$ of negative infinit$y$ before softmax sampling. We note the IGCD's scope limitation: it detects explicit first-order predicate logic conflicts onl$y$; implicit, higher-order, or pragmatic contradictions are outside its formal guarantee boundar$y$.
 \begin{equation}
- Conflict(c_i,c_j): TRUE \text{ iff } subj(c_i)=subj(c_j) \text{ AND } rel(c_i)=rel(c_j) \text{ AND } obj(c_i)\neq obj(c_j)
+ \begin{aligned} & Conflict(c_i,c_j): TRUE \text{ iff } \\ & subj(c_i)=subj(c_j) \text{ AND } rel(c_i)=rel(c_j) \\ & \text{AND } obj(c_i)\neq obj(c_j) \end{aligned}
 \end{equation}
 
 \begin{equation}
@@ -129,7 +132,7 @@ Long-form generation introduces cross-sequence logical contradiction risk. A mod
 \subsection{Multi-Term Training Objective}
 The composite training objective balances three competing terms. L\_CE provides the foundational LM gradient. L\_truth creates explicit incentive for high gate confidence: an$y$ sequence step where mean confidence $C_mean$ falls below 1.0 incurs penalt$y$ scaled b$y$ $lambda_1$=0.30. L\_conflict penalises all pairwise logical contradictions scaled b$y$ $lambda_2$=0.20. All three terms backpropagate jointl$y$ through both streams, the DVTE MLP, and the IGCD DAG. Lambda coefficients were selected via grid search over {0.10, 0.20, 0.30, 0.50} using validation verification accurac$y$. We note that this grid search was conducted on the closed-domain validation set; optimal coefficients ma$y$ differ for open-domain deplo$y$ment.
 \begin{equation}
- L_{Total} = L_{CE}(y, \hat{y}) + \lambda_1 * \max(0, 1 - C_{mean}) + \lambda_2 * \sum(conflict\_pairs)
+ \begin{aligned} L_{Total} =&~ L_{CE}(y, \hat{y}) + \lambda_1 * \max(0, 1 - C_{mean}) \\ & + \lambda_2 * \sum(conflict\_pairs) \end{aligned} 
 \end{equation}
 
 \begin{equation}
@@ -137,7 +140,7 @@ The composite training objective balances three competing terms. L\_CE provides 
 \end{equation}
 
 \begin{equation}
- L_{truth} = \max(0, 1 - C_{mean}) \text{ where } C_{mean} = \text{mean verified confidence}
+ \begin{aligned} & L_{truth} = \max(0, 1 - C_{mean}) \\ & \text{where } C_{mean} = \text{mean verified confidence} \end{aligned} 
 \end{equation}
 
 \begin{equation}
@@ -148,6 +151,7 @@ The composite training objective balances three competing terms. L\_CE provides 
 VALKYRIE is implemented in P$y$Torch 2.8 with a 2-la$y$er dual-stream decoder (d\_model=512, 8 heads, d\_ff=2048). The DVTE MLP uses ReLU activations with dropout p=0.10. GraphEmbed uses a 2-la$y$er GCN with 512-dim node embeddings. Training uses AdamW at lr=1e-4 with cosine annealing over 20 epochs, gradient norm clipping at 1.0. The KB primar$y$ tier uses FAISS IndexFlatL2 with 768-dim sentence-transformer embeddings. MC Dropout uses $T=50$ passes with p=0.10. All experiments run on a single NVIDIA Tesla T4 GPU (16GB VRAM, batch size 16, mixed-precision FP16). Total training: 7.4 hours.
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lll}
 \toprule
 \textbf{H$y$perparameter} & \textbf{Value} & \textbf{Rationale} \\
@@ -168,6 +172,7 @@ $lambda_2$ (conflict) & 0.20 & Conflict suppression weight \\
 Gate init (a, b) & 0.10 & Near-zero initialization \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{VALKYRIE-Decoder Hyperparameter Configuration.}
 \end{table}
 
@@ -176,6 +181,7 @@ Gate init (a, b) & 0.10 & Near-zero initialization \\
 The VALKYRIE-102K Corpus is a purpose-built instruction-tuning dataset of 102,047 high-context reasoning pairs. We introduce \textbf{Reasoning Densit$y$ (RD)}: the ratio of independentl$y$ verifiable semantic triplets to total token count. Standard SQuAD achieves RD=41.2; HotpotQA achieves RD=183.7; VALKYRIE-102K achieves RD=634.93 — a 3.5x densit$y$ increase. The corpus integrates three sub-datasets: HotpotQA for multi-hop reasoning, HaluEval for adversarial hallucination detection, and LogicNLI for deductive consistenc$y$. \textbf{Limitation:} The corpus is drawn from English-language sources with Western-centric factual grounding; cross-cultural and multilingual generalisabilit$y$ has not been evaluated.
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Sub-Corpus} & \textbf{Task T$y$pe} & \textbf{Pairs} & \textbf{RD Score} \\
@@ -186,6 +192,7 @@ LogicNLI & Deductive consistenc$y$ & 32,000 & 624.1 \\
 Total / Avg & Mixed & 102,047 & 634.93 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{VALKYRIE-102K Corpus composition and Reasoning Density.}
 \end{table}
 
@@ -218,6 +225,7 @@ VALKYRIE was benchmarked against a Standard Transformer and a RAG-Enhanced model
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Metric} & \textbf{Std. Transformer} & \textbf{RAG-Enhanced} & \textbf{VALKYRIE v2} \\
@@ -232,6 +240,7 @@ Recall & 68.8\% & 80.1\% & 96.4\% \\
 F1-Score & 70.0\% & 81.7\% & 97.5\% \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Closed-domain quantitative comparison.}
 \end{table}
 
@@ -246,6 +255,7 @@ Fig. 7 plots accuracy across all 20 epochs. The two-phase convergence is visible
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Epoch} & \textbf{Loss} & \textbf{Accurac$y$} & \textbf{95\% CI} \\
@@ -258,6 +268,7 @@ Fig. 7 plots accuracy across all 20 epochs. The two-phase convergence is visible
 20 & 4.02 & 97.3\% & (96.1-98.2) \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Epoch-level accuracy with bootstrap 95\% CI.}
 \end{table}
 
@@ -266,6 +277,7 @@ Table 6 decomposes accuracy across 10 KB domains with per-domain 95\% confidence
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Knowledge Domain} & \textbf{KB Facts} & \textbf{Accurac$y$} & \textbf{95\% CI} \\
@@ -283,6 +295,7 @@ Other / Mixed & 1,451 & 95.4\% & (93.2-97.0) \\
 Overall (Weighted) & 49,951 & 97.3\% & (96.1-98.2) \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Per-domain accuracy with 95\% confidence intervals.}
 \end{table}
 
@@ -297,6 +310,7 @@ Table 7 presents systematic ablation results. Each component provides individual
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Configuration} & \textbf{Accurac$y$} & \textbf{Halluc. Rate} & \textbf{Delta} \\
@@ -308,6 +322,7 @@ Standard Transformer & 62.0\% & 38.0\% & baseline \\
 Full VALKYRIE v2 & 97.3\% & 2.7\% & +4.0pp \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Ablation study with incremental gains.}
 \end{table}
 
@@ -316,6 +331,7 @@ Table 8 decomposes performance by DVTE query category. Temporal queries show hig
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lllll}
 \toprule
 \textbf{Quer$y$ T$y$pe} & \textbf{Threshold} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
@@ -327,6 +343,7 @@ Temporal & 0.85 & 99.6\% & 93.1\% & 96.2\% \\
 Weighted Avg & -- & 98.7\% & 96.4\% & 97.5\% \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Per-query-type Precision, Recall, and F1.}
 \end{table}
 
@@ -346,6 +363,7 @@ Table 9 details IGCD detection across four conflict categories. Object and symme
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Conflict T$y$pe} & \textbf{Detected} & \textbf{Suppressed} & \textbf{Miss Rate} \\
@@ -357,6 +375,7 @@ Cross-sentence Drift & 126 & 107 & 15.1\% \\
 Total (All T$y$pes) & 1,000 & 949 & 5.1\% \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{IGCD conflict detection by type. Miss rates reflect scope boundaries of Theorem 1.}
 \end{table}
 
@@ -374,6 +393,7 @@ Table 10 compares per-query computational cost. VALKYRIE's fast path (41\% of qu
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Architecture} & \textbf{FLOPs/Quer$y$} & \textbf{Accurac$y$} & \textbf{vs. Baseline} \\
@@ -385,6 +405,7 @@ VALKYRIE (Deep Path) & 31.7M & 97.3\% & +19\% saved \\
 VALKYRIE (Average) & 23.1M & 97.3\% & +41\% saved \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Computational efficiency (FLOPs/query).}
 \end{table}
 
@@ -393,6 +414,7 @@ A critical limitation of all KB-bounded verification systems is performance degr
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Evaluation Setting} & \textbf{Test Size} & \textbf{Accurac$y$} & \textbf{Halluc. Rate} \\
@@ -403,6 +425,7 @@ Open-Domain (out-of-KB) & 500 & 68.4\% & 14.2\% \\
 Adversarial (HaluEval) & 500 & 71.8\% & 11.6\% \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Multi-setting evaluation: closed-domain to open-domain.}
 \end{table}
 
@@ -415,6 +438,7 @@ Table 12 documents all 27 error cases from the closed-domain test suite, categor
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{llll}
 \toprule
 \textbf{Failure Mode} & \textbf{Count} & \textbf{Share} & \textbf{Root Cause} \\
@@ -425,6 +449,7 @@ KB Coverage Gap & 4 & 15\% & Claim outside KB domain \\
 Temporal Boundar$y$ & 3 & 11\% & API bounded fact expires \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{Failure case breakdown (closed-domain, n=1,000).}
 \end{table}
 
@@ -473,6 +498,7 @@ The bounded convergence range [0.15, 0.20] is consistent across all 5 runs (max 
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lllll}
 \toprule
 \textbf{La$y$er} & \textbf{alpha (mean)} & \textbf{alpha (std)} & \textbf{beta (mean)} & \textbf{beta (std)} \\
@@ -487,11 +513,13 @@ The bounded convergence range [0.15, 0.20] is consistent across all 5 runs (max 
 8 & 0.191 & 0.002 & 0.189 & 0.003 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{BCSA gate scalar convergence: mean and std across 5 training runs. Variance decreases monotonically with depth.}
 \end{table}
 
 \begin{table}[htbp]
 \centering
+\begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lll}
 \toprule
 \textbf{Paper} & \textbf{Year} & \textbf{VALKYRIE Module Validated} \\
@@ -503,6 +531,7 @@ Self-Contradiction & ICLR 2024 & IGCD conflict detection \\
 Huang Surve$y$ & ACM TOIS 2025 & All three modules \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \caption{2024-2025 papers mapped to VALKYRIE novelties.}
 \end{table}
 
