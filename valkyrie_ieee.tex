@@ -6,7 +6,7 @@
 \begin{document}
 
 \title{VALKYRIE-Decoder: A Decoder-Integrated Neuro-Symbolic Gating Framework for Hallucination Mitigation in LLMs}
-\author{Manu Gandham\\ Advanced Neural Systems Laboratory}
+\author{Manu Gandham\\ \textit{Advanced Neural Systems Laboratory}}
 \maketitle
 
 \begin{abstract}
@@ -21,12 +21,12 @@ Large Language Models, Hallucination Mitigation, Dual-Stream Transformer, Neuro-
 \subsection{The Hallucination Paradox}
 The dominance of Transformer-based architectures has yielded remarkable linguistic capabilities, with modern LLMs exceeding human performance on reading comprehension, translation, and code synthesis benchmarks. Yet this fluency conceals a structural deficiency: the absence of any mechanism within the decoding loop capable of verifying whether the generated token sequence corresponds to externally grounded truth. This tension — the \textit{Hallucination Paradox} — posits that as parameter counts scale, linguistic fluency improves monotonically while factual accuracy remains bounded by pre-training corpora quality. Empirical studies report hallucination rates of 23-46\% for state-of-the-art models on factual benchmarks, rising sharply on multi-hop tasks. High-stakes deployment environments — biomedical diagnostics, legal research, financial decision support — cannot tolerate such error rates. Crucially, this is not a data quantity problem: even models trained on the entire indexed internet hallucinate with high confidence, confirming the issue is architectural rather than parametric.
 
-\begin{figure}[hbt!]
+\begin{figure*}[htbp]
 \centering
-\includegraphics[width=0.9\columnwidth]{figures/fig0_architecture.png}
+\includegraphics[width=\textwidth]{figures/fig0_architecture.png}
 \caption{VALKYRIE-Decoder architectural overview, illustrating the Bidirectional Cross-Stream Attention mechanism.}
 \label{fig:arch}
-\end{figure}
+\end{figure*}
 
 \subsection{Semantic Drift in Autoregressive Decoding}
 Standard autoregressive decoding generates tokens sequentially, conditioning each decision solely on $P(x_t \mid x_1, \dots, x_{t-1})$. This linear paradigm is structurally incapable of global coherence verification. Even minor probabilistic deviations at token position t compound downstream — a phenomenon we term \textit{semantic drift}. The mathematical root lies in the absence of any cross-positional truth-binding constraint in the standard attention mechanism. Standard self-attention $Q=K=V=H$ processes all positions in parallel without verifying that a claim at position 50 is logically consistent with a claim at position 200. If the model early-commits to an incorrect relational anchor, all subsequent claims using that anchor inherit the hallucination, producing coherent but factually corrupt outputs at scale.
@@ -89,10 +89,11 @@ The DVTE operationalises the insight that different epistemic claim categories c
  \epsilon_{MC} = \frac{1}{T} \sum_{t=1}^{T} || h_t - h_{mean} ||^2 \quad, \quad T = 50
 \end{equation}
 
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{DVTE query-type threshold parameters.}
 \label{tab:threshold}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lllll}
 \toprule
 \textbf{Query Type} & \textbf{$\beta_{base}$} & \textbf{Depth $\lambda$} & \textbf{Strictness} & \textbf{Coverage} \\
@@ -102,10 +103,11 @@ Relational & 0.60 & 0.02 & Moderate & Entity relationships \\
 Opinion & 0.40 & 0.01 & Low & Subjective statements \\
 Temporal & 0.85 & 0.04 & Maximum & Time-bounded facts \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig3_threshold_analysis.png}
 \caption{Analysis of accuracy distributions corresponding to varying DVTE thresholds.}
@@ -125,10 +127,11 @@ The composite training objective balances three competing terms. $L_CE$ provides
 \subsection{Implementation Details}
 VALKYRIE is implemented in PyTorch 2.8 with a 2-layer dual-stream decoder ($d_model=512$, 8 heads, $d_ff=2048$). The DVTE MLP uses ReLU activations with dropout $p=0.10$. GraphEmbed uses a 2-layer GCN with 512-dim node embeddings. Training uses AdamW at $lr=1e-4$ with cosine annealing over 20 epochs, gradient norm clipping at 1.0. The KB primary tier uses FAISS IndexFlatL2 with 768-dim sentence-transformer embeddings. MC Dropout uses $T=50$ passes with $p=0.10$. All experiments run on a single NVIDIA Tesla T4 GPU (16GB VRAM, batch size 16, mixed-precision FP16). Total training: 7.4 hours.
 
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{VALKYRIE-Decoder Hyperparameter Configuration.}
 \label{tab:hyperparams}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lll}
 \toprule
 \textbf{Hyperparameter} & \textbf{Value} & \textbf{Rationale} \\
@@ -148,17 +151,19 @@ $lambda_1$ (truth) & 0.30 & Strong truth signal weight \\
 $lambda_2$ (conflict) & 0.20 & Conflict suppression weight \\
 Gate init (a, b) & 0.10 & Near-zero initialization \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \section{Dataset and Knowledge Infrastructure}
 \subsection{The VALKYRIE-102K Training Corpus}
 The VALKYRIE-102K Corpus is a purpose-built instruction-tuning dataset of 102,047 high-context reasoning pairs. We introduce \textbf{Reasoning Density (RD)}: the ratio of independently verifiable semantic triplets to total token count. Standard SQuAD achieves RD=41.2; HotpotQA achieves RD=183.7; VALKYRIE-102K achieves RD=634.93 — a 3.5x density increase. The corpus integrates three sub-datasets: HotpotQA for multi-hop reasoning, HaluEval for adversarial hallucination detection, and LogicNLI for deductive consistency. \textbf{Limitation:} The corpus is drawn from English-language sources with Western-centric factual grounding; cross-cultural and multilingual generalisability has not been evaluated.
 
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{VALKYRIE-102K Corpus composition and Reasoning Density.}
 \label{tab:corpus}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Sub-Corpus} & \textbf{Task Type} & \textbf{Pairs} & \textbf{RD Score} \\
@@ -168,13 +173,14 @@ HaluEval & Hallucination detect & 41,000 & 812.4 \\
 LogicNLI & Deductive consistency & 32,000 & 624.1 \\
 Total / Avg & Mixed & 102,047 & 634.93 \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Hybrid Knowledge Base Infrastructure}
 VALKYRIE employs a two-tier hybrid knowledge infrastructure. The primary tier is an in-memory FAISS-indexed dictionary of 49,951 curated facts across 10 domains as structured (subject, relation, object) triplets. FAISS IndexFlatL2 achieves sub-millisecond lookup (avg 0.3ms) in 768-dim embedding space. The secondary tier integrates with Wikidata SPARQL API (100M+ structured facts). Secondary invocation triggers only when primary confidence falls below 0.60, minimising API latency (avg 280ms). \textbf{Critical constraint:} Verification accuracy is fundamentally bounded by KB coverage. Claims outside the KB's 10-domain boundary cannot be verified and are correctly flagged as UNVERIFIABLE rather than hallucinated or confirmed. This design choice prioritises precision over recall: we prefer honest uncertainty over false verification.
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig7_kb_coverage.png}
 \caption{Knowledge Base domain distribution and extraction scope.}
@@ -185,7 +191,7 @@ VALKYRIE employs a two-tier hybrid knowledge infrastructure. The primary tier is
 \subsection{Training Convergence}
 Training proceeded over 20 epochs on VALKYRIE-102K. Initial cross-entropy loss: 4.52; final: 4.02. Verification accuracy follows a two-phase trajectory: plateau at 67-70\% (epochs 2-7) as the DVTE MLP develops classification representations, then steep acceleration (epochs 8-14) as gate classification stabilises, reaching 97.3\% (95\% CI: 96.1-98.2\%) at epoch 16 and maintaining stability through epoch 20. The residual 2.7\% error rate is analysed in Section 7 (Failure Analysis).
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig1_training_curves.png}
 \caption{Training convergence comparing VALKYRIE v2 loss and accuracy against standard architectures.}
@@ -195,10 +201,11 @@ Training proceeded over 20 epochs on VALKYRIE-102K. Initial cross-entropy loss: 
 \subsection{Comparative Evaluation (Closed-Domain)}
 VALKYRIE was benchmarked against a Standard Transformer and a RAG-Enhanced model on the closed-domain test set (1,000 claims, all within KB coverage).
 
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Closed-domain quantitative comparison.}
 \label{tab:comp}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Metric} & \textbf{Std. Transformer} & \textbf{RAG-Enhanced} & \textbf{VALKYRIE v2} \\
@@ -212,24 +219,25 @@ Precision & 71.2\% & 83.4\% & 98.7\% \\
 Recall & 68.8\% & 80.1\% & 96.4\% \\
 F1-Score & 70.0\% & 81.7\% & 97.5\% \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
-\begin{figure}[hbt!]
+\begin{figure*}[htbp]
 \centering
-\includegraphics[width=0.9\columnwidth]{figures/fig2_comparative_eval.png}
+\includegraphics[width=\textwidth]{figures/fig2_comparative_eval.png}
 \caption{Comparative evaluation of verification accuracy and constraint matching across generation strategies.}
 \label{fig:comparative}
-\end{figure}
+\end{figure*}
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_confusion_matrix.png}
 \caption{Confusion matrix depicting factual verification outcomes vs source distributions.}
 \label{fig:cm}
 \end{figure}
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig8_accuracy.png}
 \caption{Detailed accuracy visualization over varying constraint relaxations.}
@@ -239,10 +247,11 @@ F1-Score & 70.0\% & 81.7\% & 97.5\% \\
 \subsection{Epoch-Level Accuracy Progression}
 Table \ref{tab:epoch} presents key epoch checkpoints with bootstrap 95\% confidence intervals.
 
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Epoch-level accuracy with bootstrap 95\% CI.}
 \label{tab:epoch}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Epoch} & \textbf{Loss} & \textbf{Accuracy} & \textbf{95\% CI} \\
@@ -254,14 +263,16 @@ Table \ref{tab:epoch} presents key epoch checkpoints with bootstrap 95\% confide
 16 & 4.03 & 97.3\% & (96.1-98.2) \\
 20 & 4.02 & 97.3\% & (96.1-98.2) \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Per-Domain Accuracy Analysis}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Per-domain accuracy with 95\% confidence intervals.}
 \label{tab:domain}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Knowledge Domain} & \textbf{KB Facts} & \textbf{Accuracy} & \textbf{95\% CI} \\
@@ -278,14 +289,16 @@ Arts / Literature & 2,100 & 94.6\% & (92.5-96.3) \\
 Other / Mixed & 1,451 & 95.4\% & (93.2-97.0) \\
 Overall (Weighted) & 49,951 & 97.3\% & (96.1-98.2) \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Ablation Study}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Ablation study with incremental gains.}
 \label{tab:ablation}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Configuration} & \textbf{Accuracy} & \textbf{Halluc. Rate} & \textbf{Delta} \\
@@ -296,10 +309,11 @@ Standard Transformer & 62.0\% & 38.0\% & baseline \\
 +BCSA+DVTE+IGCD & 93.3\% & 6.7\% & +5.3pp \\
 Full VALKYRIE v2 & 97.3\% & 2.7\% & +4.0pp \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig4_ablation_study.png}
 \caption{Visualized ablation results demonstrating the marginal performance yield of each neuro-symbolic component.}
@@ -307,10 +321,11 @@ Full VALKYRIE v2 & 97.3\% & 2.7\% & +4.0pp \\
 \end{figure}
 
 \subsection{Precision, Recall and F1 Per Query Type}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Per-query-type Precision, Recall, and F1.}
 \label{tab:perquery}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lllll}
 \toprule
 \textbf{Query Type} & \textbf{Threshold} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
@@ -321,8 +336,9 @@ Opinion & 0.40 & 97.8\% & 97.4\% & 97.6\% \\
 Temporal & 0.85 & 99.6\% & 93.1\% & 96.2\% \\
 Weighted Avg & -- & 98.7\% & 96.4\% & 97.5\% \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Formal Proof: IGCD First-Order Logic Constraint Enforcement}
 \textbf{Definition 1 (Functional Relation).} A relation R is functional iff for all entities a, b, c: R(a,b) AND R(a,c) implies b=c.
@@ -332,10 +348,11 @@ Weighted Avg & -- & 98.7\% & 96.4\% & 97.5\% \\
 \textbf{Proof.} Following exhaustive DAG checks conflicts are set to $-\infty$ log probabilities, ensuring softmax of 0. QED.
 
 \subsection{IGCD Conflict Detection Performance}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{IGCD conflict detection by type.}
 \label{tab:igcd}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Conflict Type} & \textbf{Detected} & \textbf{Suppressed} & \textbf{Miss Rate} \\
@@ -346,14 +363,16 @@ Temporal Inconsistency & 178 & 162 & 9.0\% \\
 Cross-sentence Drift & 126 & 107 & 15.1\% \\
 Total (All Types) & 1,000 & 949 & 5.1\% \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Green AI Efficiency Analysis}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Computational efficiency (FLOPs/query).}
 \label{tab:green_ai}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Architecture} & \textbf{FLOPs/Query} & \textbf{Accuracy} & \textbf{vs. Baseline} \\
@@ -364,14 +383,16 @@ VALKYRIE (Fast Path) & 12.4M & 97.3\% & +68\% saved \\
 VALKYRIE (Deep Path) & 31.7M & 97.3\% & +19\% saved \\
 VALKYRIE (Average) & 23.1M & 97.3\% & +41\% saved \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \section{Open-Domain Evaluation and Limitation Characterisation}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Multi-setting evaluation: closed-domain to open-domain.}
 \label{tab:opendomain}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Evaluation Setting} & \textbf{Test Size} & \textbf{Accuracy} & \textbf{Halluc. Rate} \\
@@ -381,14 +402,16 @@ Near-Domain (KB-adjacent) & 500 & 82.1\% & 8.4\% \\
 Open-Domain (out-of-KB) & 500 & 68.4\% & 14.2\% \\
 Adversarial (HaluEval) & 500 & 71.8\% & 11.6\% \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \section{Failure Analysis}
-\begin{table}[hbt!]
+\begin{table*}[htbp]
 \centering
 \caption{Failure case breakdown (closed-domain, n=1,000).}
 \label{tab:fa}
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llll}
 \toprule
 \textbf{Failure Mode} & \textbf{Count} & \textbf{Share} & \textbf{Root Cause} \\
@@ -399,8 +422,9 @@ KB Coverage Gap & 4 & 15\% & Claim outside KB domain \\
 Temporal Boundary & 3 & 11\% & API fact expired / date-bounded \\
 Total Errors & 27 & 100\% & -- \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Overconfidence Boundary Errors (FP: 44\%)}
 The dominant failure class occurs when abstract or idiomatic claims whose surface syntax resembles factual assertions exceed the DVTE threshold.
@@ -411,7 +435,7 @@ Cases arise in the SPARQL fallback when compound queries return ambiguous ranked
 \subsection{KB Coverage Gap (15\%)}
 Cases involve claims that fall within the nominal domain boundary but target specific facts absent from the KB.
 
-\begin{figure}[hbt!]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig6_gate_scalars.png}
 \caption{Visualization of gate closure probabilities over failure modalities.}
