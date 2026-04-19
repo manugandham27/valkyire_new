@@ -66,15 +66,19 @@ def parse_and_convert(source_file, out_file, is_ieee):
         
     latex.append("\\begin{document}\n")
     
-    if is_ieee:
-        latex.append("\\title{VALKYRIE-Decoder: A Decoder-Integrated Neuro-Symbolic Gating Framework for Hallucination Mitigation in LLMs}")
-        latex.append("\\author{Manu Gandham \\\\ \\textit{Advanced Neural Systems Laboratory}}")
-        latex.append("\\maketitle")
-    else:
-        latex.append("\\title{VALKYRIE-Decoder: A Decoder-Integrated Neuro-Symbolic Gating Framework for Hallucination Mitigation in LLMs}")
-        latex.append("\\author{Manu Gandham}")
-        latex.append("\\date{\\textit{Advanced Neural Systems Laboratory}}")
-        latex.append("\\maketitle")
+    author_block = r"""\author{      
+\textbf{Deepthi Godavarthi\textsuperscript{1}}, 
+\textbf{Manu Gandham\textsuperscript{2}}\\
+\small
+\textsuperscript{1,2}School of Computer Science and Engineering, VIT-AP University, Andhra Pradesh, India. \\
+Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
+}"""
+    
+    latex.append("\\title{VALKYRIE-Decoder: A Decoder-Integrated Neuro-Symbolic Gating Framework for Hallucination Mitigation in LLMs}")
+    latex.append(author_block)
+    if not is_ieee:
+        latex.append("\\date{}")
+    latex.append("\\maketitle")
 
     import paper_content as C
     

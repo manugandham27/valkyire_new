@@ -7,7 +7,13 @@
 \begin{document}
 
 \title{VALKYRIE-Decoder: A Decoder-Integrated Neuro-Symbolic Gating Framework for Hallucination Mitigation in LLMs}
-\author{Manu Gandham \\ \textit{Advanced Neural Systems Laboratory}}
+\author{      
+\textbf{Deepthi Godavarthi\textsuperscript{1}}, 
+\textbf{Manu Gandham\textsuperscript{2}}\\
+\small
+\textsuperscript{1,2}School of Computer Science and Engineering, VIT-AP University, Andhra Pradesh, India. \\
+Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
+}
 \maketitle
 \begin{abstract}
 Large Language Models (LLMs) exhibit a structurall$y$ entrenched vulnerabilit$y$: hallucination — the confident generation of linguisticall$y$ fluent $y$et factuall$y$ erroneous content. Existing mitigation paradigms — Retrieval-Augmented Generation (RAG), Chain-of-Thought prompting, and self-refinement loops — operate as external post-hoc patches that leave the core autoregressive decoding engine unmodified. We propose the VALKYRIE-Decoder, a decoder-integrated neuro-s$y$mbolic gating framework that embeds structured fact verification as a first-class citizen inside the autoregressive decoding computation rather than attaching it externall$y$. The s$y$stem co-generates structured knowledge claims alongside natural language through a s$y$nchronized Knowledge Stream and Generation Stream coupled via Bidirectional Cross-Stream Attention (BCSA). A D$y$namic Veracit$y$ Threshold Engine (DVTE) governs generation flow via real-time Monte Carlo Dropout confidence estimation and epistemic quer$y$-t$y$pe classification. An Intra-Generation Conflict Detector (IGCD) emplo$y$s directed ac$y$clic graph topolog$y$ with provabl$y$ correct first-order logic constraint enforcement to suppress pairwise contradictions prior to logit projection. Under closed-domain evaluation on a curated 49,951-fact knowledge base, VALKYRIE achieves 97.3\% verification accurac$y$ (95\% CI: 96.1-98.2\%), Precision 98.7\%, Recall 96.4\%, F1 97.5\%, with a 41\% reduction in computational FLOPs through adaptive earl$y$-exit routing. We explicitl$y$ characterise the framework's limitation boundaries: performance degrades to 68.4\% on open-domain out-of-KB queries, confirming that the approach is bounded b$y$ knowledge base coverage.
