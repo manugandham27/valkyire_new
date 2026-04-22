@@ -346,7 +346,7 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
         "Yin, Z., et al. (2023). Do Large Language Models Know What They Don't Know? \\textit{Findings of ACL}.",
         "Gao, L., et al. (2023). RARR: Researching and Revising What Language Models Say, Using Search. \\textit{ACL}.",
         "Shi, W., et al. (2023). Trusting Your Evidence: Hallucinate Less with Context-aware Decoding. \\textit{NAACL}.",
-        "Gandham, M. (2026). VALKYRIE-50K: Neuro-Symbolic Hallucination Mitigation Dataset. \\textit{Kaggle}."
+        "Gandham, M. (2026). VALKYRIE-50K: Neuro-Symbolic Hallucination Mitigation Dataset. \\textit{Kaggle Dataset}. Available: https://www.kaggle.com/datasets/manugandham27/valkyire-decoder"
     ]
     latex.append("\\begin{thebibliography}{00}")
     for i, ref in enumerate(refs, 1):
