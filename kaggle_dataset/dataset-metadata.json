@@ -1,0 +1,21 @@
+{
+  "title": "VALKYRIE-50K: Structured Knowledge Facts for LLM Hallucination Detection",
+  "id": "manugandham27/valkyrie-50k-hallucination-detection",
+  "licenses": [
+    {
+      "name": "CC0-1.0"
+    }
+  ],
+  "description": "A curated dataset of 50,000 structured knowledge facts designed for training and evaluating hallucination detection systems in Large Language Models. Contains verified true facts and deliberately false claims across 10+ knowledge domains.",
+  "keywords": [
+    "artificial intelligence",
+    "natural language processing",
+    "knowledge graphs",
+    "hallucination detection",
+    "fact verification",
+    "large language models",
+    "transformer",
+    "NLP",
+    "deep learning"
+  ]
+}

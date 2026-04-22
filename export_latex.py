@@ -210,7 +210,7 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
     add_table(C.HYPERPARAMS, "VALKYRIE-Decoder Hyperparameter Configuration.")
 
     latex.append("\\section{Dataset and Knowledge Infrastructure}")
-    latex.append("\\subsection{The VALKYRIE-102K Training Corpus}\n" + clean_html(C.S4_CORPUS))
+    latex.append("\\subsection{The VALKYRIE-102K Training Corpus}\n" + clean_html(C.S4_CORPUS) + " The complete evaluation framework and the VALKYRIE-102K/50K datasets have been publicly released on Kaggle to ensure full reproducibility \\cite{ref26}.")
     latex.append("The full diagnostic breakdown of the training corpus is mathematically provided in Table 3.\n")
     t3 = [["Sub-Corpus","Task Type","Pairs","RD Score"],
           ["HotpotQA","Multi-hop reasoning","29,047","183.7"],
@@ -345,7 +345,8 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
         "Min, S., et al. (2023). FActScore: Fine-grained Atomic Evaluation of Factual Precision in LLM Generations. \\textit{EMNLP}.",
         "Yin, Z., et al. (2023). Do Large Language Models Know What They Don't Know? \\textit{Findings of ACL}.",
         "Gao, L., et al. (2023). RARR: Researching and Revising What Language Models Say, Using Search. \\textit{ACL}.",
-        "Shi, W., et al. (2023). Trusting Your Evidence: Hallucinate Less with Context-aware Decoding. \\textit{NAACL}."
+        "Shi, W., et al. (2023). Trusting Your Evidence: Hallucinate Less with Context-aware Decoding. \\textit{NAACL}.",
+        "Gandham, M. (2026). VALKYRIE-50K: Neuro-Symbolic Hallucination Mitigation Dataset. \\textit{Kaggle}."
     ]
     latex.append("\\begin{thebibliography}{00}")
     for i, ref in enumerate(refs, 1):
