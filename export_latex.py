@@ -59,6 +59,7 @@ def parse_and_convert(source_file, out_file, is_ieee):
     latex.append("\\usepackage{booktabs}")
     latex.append("\\usepackage{cite}")
     latex.append("\\usepackage{adjustbox}")
+    latex.append("\\usepackage{url}")
     
     if not is_ieee:
         latex.append("\\usepackage[font=small,labelfont=bf]{caption}")
@@ -346,7 +347,7 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
         "Yin, Z., et al. (2023). Do Large Language Models Know What They Don't Know? \\textit{Findings of ACL}.",
         "Gao, L., et al. (2023). RARR: Researching and Revising What Language Models Say, Using Search. \\textit{ACL}.",
         "Shi, W., et al. (2023). Trusting Your Evidence: Hallucinate Less with Context-aware Decoding. \\textit{NAACL}.",
-        "Gandham, M. (2026). VALKYRIE-50K: Neuro-Symbolic Hallucination Mitigation Dataset. \\textit{Kaggle Dataset}. Available: https://www.kaggle.com/datasets/manugandham27/valkyire-decoder"
+        "Gandham, M. (2026). VALKYRIE-50K: Neuro-Symbolic Hallucination Mitigation Dataset. \\textit{Kaggle Dataset}. Available: \\url{https://www.kaggle.com/datasets/manugandham27/valkyire-decoder?select=valkyrie_dataset_50k.csv}"
     ]
     latex.append("\\begin{thebibliography}{00}")
     for i, ref in enumerate(refs, 1):
