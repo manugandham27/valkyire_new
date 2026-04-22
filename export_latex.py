@@ -67,12 +67,13 @@ def parse_and_convert(source_file, out_file, is_ieee):
         
     latex.append("\\begin{document}\n")
     
-    author_block = r"""\author{      
-\textbf{Deepthi Godavarthi\textsuperscript{1}}, 
-\textbf{Manu Gandham\textsuperscript{2}}\\
+    author_block = r"""\author{
+\textbf{Deepthi Godavarthi\textsuperscript{1,*}}, 
+\textbf{Manu Gandham\textsuperscript{2}} \\
 \small
 \textsuperscript{1,2}School of Computer Science and Engineering, VIT-AP University, Andhra Pradesh, India. \\
 Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
+\textsuperscript{*}Corresponding author: saideepthi531@gmail.com
 }"""
     
     latex.append("\\title{VALKYRIE-Decoder: A Decoder-Integrated Neuro-Symbolic Gating Framework for Hallucination Mitigation in LLMs}")
