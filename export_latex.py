@@ -356,10 +356,6 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
     latex.append("\\end{thebibliography}\n")
 
     if is_ieee:
-        latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/fig0_architecture.png}}]{Deepthi Godavarthi}")
-        latex.append("and the other authors may include biographies at the end of regular papers. Biographies are often not included in conference-related papers. This author became a Member (M) of IEEE in 2002, a Senior Member (SM) in 2010, and a Fellow (F) in 2014. The first paragraph may contain a place and/or date of birth (list place, then date). Next, the author's educational background is listed. The degrees should be listed with type of degree in what field, which institution, city, state, and country, and year degree was earned.")
-        latex.append("\\end{IEEEbiography}\n")
-        
         latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/fig0_architecture.png}}]{Gandham Venkata Manu Rohith}")
         latex.append("is currently pursuing a B.Tech. degree in Computer Science and Engineering with a specialization in Artificial Intelligence and Machine Learning at Vellore Institute of Technology, Amaravati, India, with an expected graduation in 2027. "
                      "He has been an undergraduate student since 2023 and is currently in his third year. He has gained hands-on experience through Engineering Clinics, where he has worked on real-world, problem-driven projects involving system design and implementation. "
