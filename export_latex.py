@@ -356,17 +356,17 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
     latex.append("\\end{thebibliography}\n")
 
     if is_ieee:
-        latex.append("\\begin{IEEEbiographynophoto}{Deepthi Godavarthi}")
+        latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio,draft]{figures/deepthi_photo.png}}]{Deepthi Godavarthi}")
         latex.append("Biography text for the first author goes here. Replace this placeholder with the actual biographical details.")
-        latex.append("\\end{IEEEbiographynophoto}\n")
+        latex.append("\\end{IEEEbiography}\n")
         
-        latex.append("\\begin{IEEEbiographynophoto}{Gandham Venkata Manu Rohith}")
+        latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio,draft]{figures/manu_photo.png}}]{Gandham Venkata Manu Rohith}")
         latex.append("is currently pursuing a B.Tech. degree in Computer Science and Engineering with a specialization in Artificial Intelligence and Machine Learning at Vellore Institute of Technology, Amaravati, India, with an expected graduation in 2027. "
                      "He has been an undergraduate student since 2023 and is currently in his third year. He has gained hands-on experience through Engineering Clinics, where he has worked on real-world, problem-driven projects involving system design and implementation. "
                      "His project work focuses on applied AI solutions, including computer vision-based systems and intelligent automation. He has been actively involved in developing systems related to real-time monitoring and analytics, reflecting his interest in building scalable and impactful AI applications. "
                      "His research interests include artificial intelligence, computer vision, pattern recognition, and cloud-integrated machine learning systems. He is particularly interested in deploying AI models in production environments using cloud platforms. "
                      "He holds industry-recognized certifications, including AWS Cloud Foundations and AWS Solutions Architect, demonstrating his expertise in cloud computing, system architecture, and scalable deployment of AI-driven applications.")
-        latex.append("\\end{IEEEbiographynophoto}\n")
+        latex.append("\\end{IEEEbiography}\n")
 
     latex.append("\\end{document}")
     
