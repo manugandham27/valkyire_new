@@ -357,7 +357,7 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
 
     if is_ieee:
         latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio,draft]{figures/deepthi_photo.png}}]{Deepthi Godavarthi}")
-        latex.append("Biography text for the first author goes here. Replace this placeholder with the actual biographical details.")
+        latex.append("and the other authors may include biographies at the end of regular papers. Biographies are often not included in conference-related papers. This author became a Member (M) of IEEE in 2002, a Senior Member (SM) in 2010, and a Fellow (F) in 2014. The first paragraph may contain a place and/or date of birth (list place, then date). Next, the author's educational background is listed. The degrees should be listed with type of degree in what field, which institution, city, state, and country, and year degree was earned.")
         latex.append("\\end{IEEEbiography}\n")
         
         latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio,draft]{figures/manu_photo.png}}]{Gandham Venkata Manu Rohith}")
