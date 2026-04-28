@@ -356,7 +356,7 @@ Email Id: saideepthi531@gmail.com, rohith.23bce7148@vitapstudent.ac.in\\
     latex.append("\\end{thebibliography}\n")
 
     if is_ieee:
-        latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/manu_photo.png}}]{Gandham Venkata Manu Rohith}")
+        latex.append("\\begin{IEEEbiography}[{\\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{manu_photo.png}}]{Gandham Venkata Manu Rohith}")
         latex.append("is currently pursuing a B.Tech. degree in Computer Science and Engineering with a specialization in Artificial Intelligence and Machine Learning at Vellore Institute of Technology, Amaravati, India, with an expected graduation in 2027. "
                      "He has been an undergraduate student since 2023 and is currently in his third year. He has gained hands-on experience through Engineering Clinics, where he has worked on real-world, problem-driven projects involving system design and implementation. "
                      "His project work focuses on applied AI solutions, including computer vision-based systems and intelligent automation. He has been actively involved in developing systems related to real-time monitoring and analytics, reflecting his interest in building scalable and impactful AI applications. "
